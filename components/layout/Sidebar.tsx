@@ -13,30 +13,31 @@ export function Sidebar() {
   return (
     <aside style={{
       width: '220px',
-      background: '#0F172A',
-      color: '#CBD5E1',
+      background: 'var(--color-surface)',
+      color: 'var(--color-text-primary)',
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
       flexShrink: 0,
-      borderRight: '1px solid rgba(255,255,255,.06)',
+      borderRight: '1px solid var(--color-border)',
     }}>
       {/* Logo */}
-      <div style={{ padding: '1.25rem 1.25rem 1rem', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
+      <div style={{ padding: '1.25rem 1.25rem 1rem', borderBottom: '1px solid var(--color-border)' }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '.625rem' }}>
             <div style={{
               width: '32px', height: '32px',
-              background: 'linear-gradient(135deg,#2563EB,#0EA5E9)',
+              background: 'var(--color-primary)',
               borderRadius: '8px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '1rem',
+              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -2px 0 rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.2)',
             }}>🏗️</div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '.9rem', color: 'white', lineHeight: 1.2 }}>
+              <div style={{ fontWeight: 700, fontSize: '.9rem', color: 'var(--color-text-primary)', lineHeight: 1.2 }}>
                 ThermoShelter
               </div>
-              <div style={{ fontSize: '.7rem', color: '#64748B', letterSpacing: '.05em' }}>AI PLATFORM</div>
+              <div style={{ fontSize: '.7rem', color: 'var(--color-text-secondary)', letterSpacing: '.05em' }}>AI PLATFORM</div>
             </div>
           </div>
         </Link>
@@ -44,7 +45,7 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav style={{ flex: 1, padding: '.75rem .75rem', display: 'flex', flexDirection: 'column', gap: '.25rem' }}>
-        <div style={{ fontSize: '.6875rem', fontWeight: 600, color: '#475569', letterSpacing: '.08em', padding: '.5rem .5rem .25rem', textTransform: 'uppercase' }}>
+        <div style={{ fontSize: '.6875rem', fontWeight: 600, color: 'var(--color-text-secondary)', letterSpacing: '.08em', padding: '.5rem .5rem .25rem', textTransform: 'uppercase' }}>
           Main
         </div>
         {NAV.map(({ href, icon, label }) => {
@@ -56,9 +57,9 @@ export function Sidebar() {
               borderRadius: '7px',
               textDecoration: 'none',
               fontSize: '.875rem',
-              fontWeight: active ? 600 : 400,
-              color: active ? 'white' : '#94A3B8',
-              background: active ? 'rgba(37,99,235,.25)' : 'transparent',
+              fontWeight: active ? 600 : 500,
+              color: active ? 'var(--color-primary)' : 'var(--color-text-muted)',
+              background: active ? 'var(--color-surface-muted)' : 'transparent',
               transition: 'all .15s',
             }}>
               <span style={{ fontSize: '1rem', opacity: active ? 1 : .7 }}>{icon}</span>
@@ -67,8 +68,9 @@ export function Sidebar() {
                 <div style={{
                   marginLeft: 'auto',
                   width: '6px', height: '6px',
-                  background: '#3B82F6',
+                  background: 'var(--color-primary)',
                   borderRadius: '50%',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
                 }} />
               )}
             </Link>
@@ -77,9 +79,9 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div style={{ padding: '1rem 1.25rem', borderTop: '1px solid rgba(255,255,255,.06)' }}>
-        <div style={{ fontSize: '.75rem', color: '#475569' }}>
-          <div style={{ color: '#64748B', marginBottom: '.25rem' }}>v1.0.0 · Build Edition</div>
+      <div style={{ padding: '1rem 1.25rem', borderTop: '1px solid var(--color-border)' }}>
+        <div style={{ fontSize: '.75rem', color: 'var(--color-text-muted)' }}>
+          <div style={{ color: 'var(--color-text-secondary)', marginBottom: '.25rem' }}>v1.0.0 · Build Edition</div>
           © 2026 ThermoShelter AI
         </div>
       </div>

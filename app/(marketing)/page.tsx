@@ -71,13 +71,25 @@ export default function LandingPage() {
 
       {/* ── Hero ── */}
       <section style={{
+        position: 'relative',
         padding: '6rem 2rem 5rem',
         textAlign: 'center',
-        background: 'linear-gradient(180deg, #F0F7FF 0%, white 100%)',
         borderBottom: '1px solid var(--color-border)',
+        overflow: 'hidden',
       }}>
-        <div className="animate-fade-in" style={{ maxWidth: '780px', margin: '0 auto' }}>
-          <span className="badge badge-blue" style={{ marginBottom: '1.25rem' }}>
+        {/* Background Image with 68% Transparency */}
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: 'url(/images/desert_shelter.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          opacity: 0.30,
+          zIndex: 0,
+        }} />
+        
+        <div className="animate-fade-in" style={{ maxWidth: '780px', margin: '0 auto', position: 'relative', zIndex: 10 }}>
+          <span className="badge badge-olive" style={{ marginBottom: '1.25rem' }}>
             Physics-Based Thermal Design Platform
           </span>
           <h1 style={{
@@ -94,7 +106,9 @@ export default function LandingPage() {
           </h1>
           <p style={{
             fontSize: '1.125rem',
-            color: 'var(--color-text-secondary)',
+            color: 'var(--color-text-primary)',
+            fontWeight: 500,
+            textShadow: '0px 1px 2px rgba(255,255,255,0.7)',
             maxWidth: '560px',
             margin: '0 auto 2.5rem',
             lineHeight: 1.7,
@@ -148,7 +162,7 @@ export default function LandingPage() {
         }}>
           {features.map(f => (
             <div key={f.title} className="card" style={{ cursor: 'default' }}>
-              <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>{f.icon}</div>
+              <div className="animate-float-3d" style={{ fontSize: '2.5rem', marginBottom: '1rem', filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.3)) drop-shadow(0px 1px 1px rgba(255,255,255,0.6))' }}>{f.icon}</div>
               <h3 style={{ fontSize: '1.0625rem', fontWeight: 600, color: 'var(--color-primary)', marginBottom: '.5rem' }}>
                 {f.title}
               </h3>
@@ -163,35 +177,52 @@ export default function LandingPage() {
       {/* ── Workflow Steps ── */}
       <section style={{ background: 'var(--color-surface-alt)', borderTop: '1px solid var(--color-border)', padding: '5rem 2rem' }}>
         <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-primary)', letterSpacing: '-0.03em' }}>
+          <h2 style={{
+            fontSize: '2.5rem',
+            fontWeight: 800,
+            color: 'var(--color-primary)',
+            letterSpacing: '-0.03em',
+            textShadow: '1px 1px 0 #5E3219, 2px 2px 0 #5E3219, 3px 3px 0 #5E3219, 4px 4px 6px rgba(0,0,0,0.4), 0 2px 2px rgba(255,255,255,0.5)',
+            marginBottom: '0.5rem'
+          }}>
             6-Step Design Workflow
           </h2>
-          <p style={{ color: 'var(--color-text-secondary)', marginTop: '.75rem', marginBottom: '3rem' }}>
+          <p style={{
+            color: 'var(--color-text-primary)',
+            fontSize: '1.125rem',
+            fontWeight: 500,
+            marginTop: '.75rem',
+            marginBottom: '3rem',
+            textShadow: '0 1px 1px rgba(255,255,255,0.7)'
+          }}>
             Guided from location input to fully optimized design output.
           </p>
           <div style={{ display: 'flex', gap: '0', flexWrap: 'wrap', justifyContent: 'center' }}>
             {['📍 Location', '🌡️ Climate', '🏗️ Design', '⚡ Simulate', '🔧 Optimize', '📊 Report'].map((step, i) => (
               <div key={step} style={{ display: 'flex', alignItems: 'center' }}>
-                <div style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '.375rem',
+                <div className="animate-float-3d" style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '.5rem',
                   padding: '.75rem 1rem',
+                  animationDelay: `${i * 0.15}s`,
                 }}>
                   <div style={{
-                    width: '40px', height: '40px',
+                    width: '48px', height: '48px',
                     background: 'var(--color-secondary)',
                     color: 'white',
                     borderRadius: '50%',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '.8rem', fontWeight: 700,
+                    fontSize: '1rem', fontWeight: 700,
+                    boxShadow: 'inset 0 2px 0 rgba(255, 255, 255, 0.3), inset 0 -3px 0 rgba(0, 0, 0, 0.3), 0 4px 6px rgba(0, 0, 0, 0.2)',
+                    textShadow: '0 1px 1px rgba(0, 0, 0, 0.4)',
                   }}>
                     {i + 1}
                   </div>
-                  <span style={{ fontSize: '.8125rem', fontWeight: 500, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: '.875rem', fontWeight: 600, color: 'var(--color-text-primary)', whiteSpace: 'nowrap', textShadow: '1px 1px 0 rgba(255,255,255,0.5)' }}>
                     {step.split(' ').slice(1).join(' ')}
                   </span>
                 </div>
                 {i < 5 && (
-                  <div style={{ width: '24px', height: '2px', background: 'var(--color-border-strong)', flexShrink: 0 }} />
+                  <div style={{ width: '24px', height: '3px', background: 'var(--color-border-strong)', flexShrink: 0, borderRadius: '2px', boxShadow: '0 1px 1px rgba(255,255,255,0.5), inset 0 1px 1px rgba(0,0,0,0.1)' }} />
                 )}
               </div>
             ))}
@@ -203,22 +234,17 @@ export default function LandingPage() {
       <section style={{
         padding: '5rem 2rem',
         textAlign: 'center',
-        background: 'linear-gradient(135deg, #1E40AF 0%, #2563EB 50%, #0EA5E9 100%)',
+        background: 'linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-light) 100%)',
         color: 'white',
+        boxShadow: 'inset 0 4px 10px rgba(0,0,0,0.1)',
       }}>
-        <h2 style={{ fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '1rem' }}>
+        <h2 style={{ fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '1rem', textShadow: '1px 1px 0px rgba(255, 255, 255, 0.2), -1px -1px 0px rgba(0, 0, 0, 0.3)' }}>
           Ready to Design Smarter Shelters?
         </h2>
-        <p style={{ opacity: .85, marginBottom: '2rem', fontSize: '.95rem' }}>
+        <p style={{ opacity: .9, marginBottom: '2rem', fontSize: '.95rem', textShadow: '0 1px 1px rgba(0,0,0,0.4)' }}>
           Start your first project in seconds. No account required.
         </p>
-        <Link href="/projects" style={{
-          display: 'inline-flex', alignItems: 'center', gap: '.5rem',
-          background: 'white', color: 'var(--color-secondary)',
-          padding: '.875rem 2rem', borderRadius: '8px',
-          fontWeight: 600, textDecoration: 'none', fontSize: '1rem',
-          transition: 'transform .15s, box-shadow .15s',
-        }}>
+        <Link href="/projects" className="btn btn-primary btn-lg">
           Create Your First Project →
         </Link>
       </section>

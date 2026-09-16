@@ -31,18 +31,38 @@ export default function DashboardPage() {
         gap: '1rem', marginBottom: '2.5rem',
       }}>
         {[
-          { label: 'Total Projects', value: total,      icon: '📁', color: '#2563EB' },
-          { label: 'Optimized',      value: complete,   icon: '✅', color: '#059669' },
-          { label: 'In Progress',    value: inProgress, icon: '⚡', color: '#D97706' },
-          { label: 'Drafts',         value: drafts,     icon: '📝', color: '#64748B' },
+          { label: 'Total Projects', value: total,      icon: '📁', color: 'var(--color-primary)' },
+          { label: 'Optimized',      value: complete,   icon: '✅', color: 'var(--color-secondary)' },
+          { label: 'In Progress',    value: inProgress, icon: '⚡', color: '#A0522D' },
+          { label: 'Drafts',         value: drafts,     icon: '📝', color: 'var(--color-text-muted)' },
         ].map(s => (
-          <div key={s.label} className="stat-card" style={{ position: 'relative', overflow: 'hidden' }}>
-            <div style={{
-              position: 'absolute', right: '1rem', top: '1rem',
-              fontSize: '1.5rem', opacity: .15,
-            }}>{s.icon}</div>
-            <div className="stat-value" style={{ color: s.color }}>{s.value}</div>
-            <div className="stat-label">{s.label}</div>
+          <div key={s.label} className="stat-card" style={{
+            position: 'relative', overflow: 'hidden',
+            display: 'flex', flexDirection: 'column',
+            padding: '1.5rem',
+            background: 'white',
+            borderRadius: '12px',
+            border: '1px solid var(--color-border)',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.05), inset 0 2px 0 rgba(255,255,255,1)',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <div className="animate-float-3d" style={{
+                width: '44px', height: '44px',
+                background: 'var(--color-surface)',
+                borderRadius: '12px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '1.5rem',
+                boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.9), inset 0 -2px 2px rgba(0,0,0,0.05), 0 4px 6px rgba(0,0,0,0.1)'
+              }}>
+                {s.icon}
+              </div>
+              <div className="stat-value" style={{ color: s.color, fontSize: '2.5rem', fontWeight: 800, textShadow: '1px 1px 0px rgba(0,0,0,0.1)' }}>
+                {s.value}
+              </div>
+            </div>
+            <div className="stat-label" style={{ fontWeight: 600, color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
+              {s.label}
+            </div>
           </div>
         ))}
       </div>

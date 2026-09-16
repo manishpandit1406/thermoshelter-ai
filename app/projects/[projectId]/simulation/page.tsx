@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { use } from 'react';
 import { formatNumber } from '@/lib/utils';
+import ShelterViewer3D from '@/components/simulation/ShelterViewer3DWrapper';
 
 interface Props { params: Promise<{ projectId: string }> }
 
@@ -29,12 +30,21 @@ const MOCK_RESULT = {
   ],
 };
 
+// Design config (in real app this would come from designStore)
+const DESIGN_CONFIG = {
+  width: 8,
+  length: 12,
+  height: 3,
+  roofType: 'flat' as const,
+};
+
 export default function SimulationPage({ params }: Props) {
   const { projectId } = use(params);
   const router = useRouter();
   const [ran, setRan] = useState(false);
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [activeTab, setActiveTab] = useState<'3d' | 'chart' | 'table'>('3d');
   const r = MOCK_RESULT;
 
   async function runSim() {
@@ -51,18 +61,19 @@ export default function SimulationPage({ params }: Props) {
   const maxLoad = Math.max(...r.monthly.map(m => Math.max(m.heat, m.cool)));
 
   return (
-    <div className="animate-fade-in" style={{ maxWidth: '900px' }}>
+    <div className="animate-fade-in" style={{ maxWidth: '960px' }}>
       <div style={{ marginBottom: '2rem' }}>
         <h1 className="page-title">⚡ Thermal Simulation</h1>
-        <p className="page-subtitle">Physics-based annual thermal performance analysis</p>
+        <p className="page-subtitle">Physics-based annual thermal performance analysis with 3D heat-map</p>
       </div>
 
       {!ran ? (
+        /* ── Pre-run state ── */
         <div className="card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔬</div>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '.5rem' }}>Ready to Simulate</h2>
-          <p style={{ color: 'var(--color-text-secondary)', marginBottom: '2rem', maxWidth: '440px', margin: '0 auto 2rem' }}>
-            This will compute monthly heat loads, cooling demand, internal temperature profiles, and an overall comfort score using your design parameters and climate data.
+          <p style={{ color: 'var(--color-text-secondary)', maxWidth: '440px', margin: '0 auto 2rem' }}>
+            Computes monthly heat loads, cooling demand, internal temperature profiles, and a 3D thermal heat-map across your shelter geometry.
           </p>
           {running ? (
             <div style={{ maxWidth: '400px', margin: '0 auto' }}>
@@ -74,7 +85,7 @@ export default function SimulationPage({ params }: Props) {
                 <div style={{
                   height: '100%',
                   width: `${progress}%`,
-                  background: 'linear-gradient(90deg, var(--color-secondary), #0EA5E9)',
+                  background: 'linear-gradient(90deg, #2563EB, #0EA5E9)',
                   borderRadius: '4px',
                   transition: 'width .1s ease',
                 }} />
@@ -83,14 +94,17 @@ export default function SimulationPage({ params }: Props) {
                 {progress < 30 ? 'Solving heat transfer equations…' :
                  progress < 60 ? 'Computing solar gains across 8760 hours…' :
                  progress < 85 ? 'Aggregating monthly thermal loads…' :
-                 'Finalising comfort score…'}
+                 'Building 3D heat-map…'}
               </div>
             </div>
           ) : (
-            <button className="btn btn-primary btn-lg" onClick={runSim}>⚡ Run Simulation</button>
+            <button className="btn btn-primary btn-lg" onClick={runSim}>
+              ⚡ Run Simulation
+            </button>
           )}
         </div>
       ) : (
+        /* ── Results state ── */
         <div className="stagger-children" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
           {/* Score Banner */}
@@ -115,10 +129,10 @@ export default function SimulationPage({ params }: Props) {
           {/* Key Metrics */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
             {[
-              { label: 'Annual Heat Load',    value: formatNumber(r.annualHeatLoad),  unit: 'kWh', color: '#2563EB', icon: '🔵' },
-              { label: 'Annual Cooling Load', value: formatNumber(r.annualCoolLoad),  unit: 'kWh', color: '#EF4444', icon: '🔴' },
-              { label: 'Peak Indoor Temp',    value: `${r.peakTempIn}°C`,            unit: '',    color: '#F59E0B', icon: '🔥' },
-              { label: 'Min Indoor Temp',     value: `${r.minTempIn}°C`,             unit: '',    color: '#0EA5E9', icon: '❄️' },
+              { label: 'Annual Heat Load',    value: formatNumber(r.annualHeatLoad), unit: 'kWh', color: '#2563EB', icon: '🔵' },
+              { label: 'Annual Cooling Load', value: formatNumber(r.annualCoolLoad), unit: 'kWh', color: '#EF4444', icon: '🔴' },
+              { label: 'Peak Indoor Temp',    value: `${r.peakTempIn}°C`,           unit: '',    color: '#F59E0B', icon: '🔥' },
+              { label: 'Min Indoor Temp',     value: `${r.minTempIn}°C`,            unit: '',    color: '#0EA5E9', icon: '❄️' },
             ].map(m => (
               <div key={m.label} className="stat-card">
                 <div style={{ fontSize: '1.25rem', marginBottom: '.375rem' }}>{m.icon}</div>
@@ -130,69 +144,127 @@ export default function SimulationPage({ params }: Props) {
             ))}
           </div>
 
-          {/* Monthly Chart */}
-          <div className="card-flat">
-            <h2 className="section-title" style={{ marginBottom: '1.5rem' }}>Monthly Thermal Loads</h2>
-            <div style={{ display: 'flex', gap: '.25rem', alignItems: 'flex-end', height: '140px', padding: '0 .5rem' }}>
-              {r.monthly.map(m => (
-                <div key={m.m} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                  {/* Cooling bar */}
-                  <div style={{
-                    width: '100%', maxWidth: '24px',
-                    height: `${(m.cool / maxLoad) * 100}px`,
-                    background: 'linear-gradient(180deg,#EF4444,#FCA5A5)',
-                    borderRadius: '3px 3px 0 0',
-                    transition: 'height .3s ease',
-                    minHeight: m.cool > 0 ? '2px' : '0',
-                  }} title={`Cooling: ${m.cool} kWh`} />
-                  {/* Heating bar */}
-                  <div style={{
-                    width: '100%', maxWidth: '24px',
-                    height: `${(m.heat / maxLoad) * 100}px`,
-                    background: 'linear-gradient(180deg,#3B82F6,#93C5FD)',
-                    borderRadius: '3px 3px 0 0',
-                    transition: 'height .3s ease',
-                    minHeight: m.heat > 0 ? '2px' : '0',
-                  }} title={`Heating: ${m.heat} kWh`} />
-                  <div style={{ fontSize: '.6rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>{m.m}</div>
-                </div>
+          {/* ── Tabbed Visualisation ── */}
+          <div className="card-flat" style={{ padding: 0, overflow: 'hidden' }}>
+
+            {/* Tab bar */}
+            <div style={{
+              display: 'flex',
+              borderBottom: '1px solid var(--color-border)',
+              background: 'var(--color-surface-alt)',
+            }}>
+              {[
+                { id: '3d' as const,    label: '🏗️ 3D Heat-Map View' },
+                { id: 'chart' as const, label: '📊 Load Chart' },
+                { id: 'table' as const, label: '📋 Monthly Table' },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    padding: '.875rem 1.25rem',
+                    border: 'none',
+                    borderBottom: activeTab === tab.id ? '2px solid var(--color-secondary)' : '2px solid transparent',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    fontSize: '.875rem',
+                    fontWeight: activeTab === tab.id ? 600 : 400,
+                    color: activeTab === tab.id ? 'var(--color-secondary)' : 'var(--color-text-secondary)',
+                    transition: 'all .15s',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  {tab.label}
+                </button>
               ))}
             </div>
-            <div style={{ display: 'flex', gap: '1.5rem', marginTop: '.75rem', justifyContent: 'flex-end' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '.375rem', fontSize: '.75rem', color: 'var(--color-text-secondary)' }}>
-                <div style={{ width: '10px', height: '10px', background: '#EF4444', borderRadius: '2px' }} /> Cooling Load
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '.375rem', fontSize: '.75rem', color: 'var(--color-text-secondary)' }}>
-                <div style={{ width: '10px', height: '10px', background: '#3B82F6', borderRadius: '2px' }} /> Heating Load
-              </div>
-            </div>
-          </div>
 
-          {/* Temperature comparison table */}
-          <div className="card-flat">
-            <h2 className="section-title" style={{ marginBottom: '1rem' }}>Indoor vs. Outdoor Temperature</h2>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.875rem' }}>
-                <thead>
-                  <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
-                    {['Month', 'Outdoor °C', 'Indoor °C', 'Δ Temp', 'Heating kWh', 'Cooling kWh'].map(h => (
-                      <th key={h} style={{ padding: '.5rem .75rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-secondary)', fontSize: '.8125rem' }}>{h}</th>
+            {/* Tab content */}
+            <div style={{ padding: '1.5rem' }}>
+
+              {/* 3D View Tab */}
+              {activeTab === '3d' && (
+                <div className="animate-fade-in">
+                  <p style={{ fontSize: '.8125rem', color: 'var(--color-text-secondary)', marginBottom: '1rem' }}>
+                    Interactive 3D thermal model. Wall colours show surface temperature — blue=cool, red=hot. Select any month to see seasonal variation.
+                  </p>
+                  <ShelterViewer3D
+                    monthly={r.monthly}
+                    config={DESIGN_CONFIG}
+                  />
+                  <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                    <div style={{ fontSize: '.8rem', color: 'var(--color-text-muted)' }}>
+                      💡 <strong>South wall</strong> is hottest (direct sun) · <strong>North wall</strong> is coolest · <strong>Roof</strong> receives highest solar gain
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Chart Tab */}
+              {activeTab === 'chart' && (
+                <div className="animate-fade-in">
+                  <h2 className="section-title" style={{ marginBottom: '1.5rem' }}>Monthly Thermal Loads</h2>
+                  <div style={{ display: 'flex', gap: '.25rem', alignItems: 'flex-end', height: '140px', padding: '0 .5rem' }}>
+                    {r.monthly.map(m => (
+                      <div key={m.m} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                        <div style={{
+                          width: '100%', maxWidth: '24px',
+                          height: `${(m.cool / maxLoad) * 100}px`,
+                          background: 'linear-gradient(180deg,#EF4444,#FCA5A5)',
+                          borderRadius: '3px 3px 0 0',
+                          minHeight: m.cool > 0 ? '2px' : '0',
+                        }} title={`Cooling: ${m.cool} kWh`} />
+                        <div style={{
+                          width: '100%', maxWidth: '24px',
+                          height: `${(m.heat / maxLoad) * 100}px`,
+                          background: 'linear-gradient(180deg,#3B82F6,#93C5FD)',
+                          borderRadius: '3px 3px 0 0',
+                          minHeight: m.heat > 0 ? '2px' : '0',
+                        }} title={`Heating: ${m.heat} kWh`} />
+                        <div style={{ fontSize: '.6rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>{m.m}</div>
+                      </div>
                     ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {r.monthly.map((m, i) => (
-                    <tr key={m.m} style={{ borderBottom: '1px solid var(--color-border)', background: i % 2 === 0 ? 'white' : 'var(--color-surface-alt)' }}>
-                      <td style={{ padding: '.5rem .75rem', fontWeight: 500 }}>{m.m}</td>
-                      <td className="mono" style={{ padding: '.5rem .75rem' }}>{m.out}</td>
-                      <td className="mono" style={{ padding: '.5rem .75rem', color: m.in > 30 ? '#EF4444' : m.in < 18 ? '#3B82F6' : '#059669' }}>{m.in}</td>
-                      <td className="mono" style={{ padding: '.5rem .75rem', color: 'var(--color-text-muted)' }}>{(m.in - m.out).toFixed(1)}</td>
-                      <td className="mono" style={{ padding: '.5rem .75rem', color: '#3B82F6' }}>{formatNumber(m.heat)}</td>
-                      <td className="mono" style={{ padding: '.5rem .75rem', color: '#EF4444' }}>{formatNumber(m.cool)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </div>
+                  <div style={{ display: 'flex', gap: '1.5rem', marginTop: '.75rem', justifyContent: 'flex-end' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '.375rem', fontSize: '.75rem', color: 'var(--color-text-secondary)' }}>
+                      <div style={{ width: '10px', height: '10px', background: '#EF4444', borderRadius: '2px' }} /> Cooling Load
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '.375rem', fontSize: '.75rem', color: 'var(--color-text-secondary)' }}>
+                      <div style={{ width: '10px', height: '10px', background: '#3B82F6', borderRadius: '2px' }} /> Heating Load
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Table Tab */}
+              {activeTab === 'table' && (
+                <div className="animate-fade-in">
+                  <h2 className="section-title" style={{ marginBottom: '1rem' }}>Indoor vs. Outdoor Temperature</h2>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.875rem' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
+                          {['Month', 'Outdoor °C', 'Indoor °C', 'Δ Temp', 'Heating kWh', 'Cooling kWh'].map(h => (
+                            <th key={h} style={{ padding: '.5rem .75rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-secondary)', fontSize: '.8125rem' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {r.monthly.map((m, i) => (
+                          <tr key={m.m} style={{ borderBottom: '1px solid var(--color-border)', background: i % 2 === 0 ? 'white' : 'var(--color-surface-alt)' }}>
+                            <td style={{ padding: '.5rem .75rem', fontWeight: 500 }}>{m.m}</td>
+                            <td className="mono" style={{ padding: '.5rem .75rem' }}>{m.out}</td>
+                            <td className="mono" style={{ padding: '.5rem .75rem', color: m.in > 30 ? '#EF4444' : m.in < 18 ? '#3B82F6' : '#059669' }}>{m.in}</td>
+                            <td className="mono" style={{ padding: '.5rem .75rem', color: 'var(--color-text-muted)' }}>{(m.in - m.out).toFixed(1)}</td>
+                            <td className="mono" style={{ padding: '.5rem .75rem', color: '#3B82F6' }}>{formatNumber(m.heat)}</td>
+                            <td className="mono" style={{ padding: '.5rem .75rem', color: '#EF4444' }}>{formatNumber(m.cool)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

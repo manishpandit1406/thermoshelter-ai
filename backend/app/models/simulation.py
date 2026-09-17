@@ -8,8 +8,8 @@ from app.database.connection import Base
 class SimulationResult(Base):
     __tablename__ = "simulation_results"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, unique=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    project_id = Column(String(36), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, unique=True)
     annual_heat_load = Column(Float, nullable=False)       # kWh
     annual_cooling_load = Column(Float, nullable=False)    # kWh
     peak_temp_inside = Column(Float, nullable=False)       # °C

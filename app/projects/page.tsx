@@ -31,9 +31,9 @@ function ProjectsContent() {
     p.description?.toLowerCase().includes(search.toLowerCase())
   );
 
-  function handleCreate() {
+  async function handleCreate() {
     if (!newName.trim()) return;
-    const project = addProject(newName.trim(), newDesc.trim() || undefined);
+    const project = await addProject(newName.trim(), newDesc.trim() || undefined);
     setShowNew(false);
     setNewName('');
     setNewDesc('');

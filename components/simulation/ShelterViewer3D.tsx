@@ -1,7 +1,7 @@
 'use client';
 import { useRef, useState, useMemo } from 'react';
 import { Canvas, useFrame, ThreeElements } from '@react-three/fiber';
-import { OrbitControls, Grid, Html, Environment } from '@react-three/drei';
+import { OrbitControls, Grid, Html, Environment, Edges } from '@react-three/drei';
 import * as THREE from 'three';
 
 // ── Types ──────────────────────────────────────────────────────────
@@ -76,6 +76,7 @@ function WallFace({
         metalness={0.05}
         envMapIntensity={0.4}
       />
+      <Edges scale={1} threshold={15} color="#000" opacity={0.3} transparent />
       {hovered && label && (
         <Html distanceFactor={8} style={{ pointerEvents: 'none' }}>
           <div style={{
@@ -135,26 +136,87 @@ function PitchedRoof({
   return (
     <mesh geometry={geometry}>
       <meshStandardMaterial color={color} roughness={0.5} metalness={0.05} side={THREE.DoubleSide} />
+      <Edges scale={1} threshold={15} color="#000" opacity={0.3} transparent />
     </mesh>
   );
 }
 
-/** Window pane — transparent blue glass */
-function WindowPane({ position, size }: {
+/** Vaulted (Curved) roof using ExtrudeGeometry */
+function VaultedRoof({
+  w, l, baseY, ridgeH, color
+}: {
+  w: number; l: number; baseY: number; ridgeH: number; color: THREE.Color;
+}) {
+  const geometry = useMemo(() => {
+    const shape = new THREE.Shape();
+    const hw = w / 2;
+    shape.moveTo(-hw, 0);
+    // control point at (0, ridgeH * 2) to make the curve peak at ridgeH
+    shape.quadraticCurveTo(0, ridgeH * 2, hw, 0);
+    shape.lineTo(-hw, 0);
+
+    const geo = new THREE.ExtrudeGeometry(shape, { steps: 1, depth: l, bevelEnabled: false });
+    geo.translate(0, baseY, -l / 2);
+    return geo;
+  }, [w, l, baseY, ridgeH]);
+
+  return (
+    <mesh geometry={geometry}>
+      <meshStandardMaterial color={color} roughness={0.5} metalness={0.05} side={THREE.DoubleSide} />
+      <Edges scale={1} threshold={15} color="#000" opacity={0.3} transparent />
+    </mesh>
+  );
+}
+
+/** Mono-pitch roof using ExtrudeGeometry */
+function MonoRoof({
+  w, l, baseY, ridgeH, color
+}: {
+  w: number; l: number; baseY: number; ridgeH: number; color: THREE.Color;
+}) {
+  const geometry = useMemo(() => {
+    const shape = new THREE.Shape();
+    const hw = w / 2;
+    shape.moveTo(-hw, 0);
+    shape.lineTo(hw, 0);
+    shape.lineTo(hw, ridgeH);
+    shape.lineTo(-hw, 0);
+
+    const geo = new THREE.ExtrudeGeometry(shape, { steps: 1, depth: l, bevelEnabled: false });
+    geo.translate(0, baseY, -l / 2);
+    return geo;
+  }, [w, l, baseY, ridgeH]);
+
+  return (
+    <mesh geometry={geometry}>
+      <meshStandardMaterial color={color} roughness={0.5} metalness={0.05} side={THREE.DoubleSide} />
+      <Edges scale={1} threshold={15} color="#000" opacity={0.3} transparent />
+    </mesh>
+  );
+}
+
+/** Realistic Window with Frame */
+function Window({ position, rotation, width, height, thickness = 0.2 }: {
   position: [number, number, number];
-  size: [number, number, number];
+  rotation: [number, number, number];
+  width: number;
+  height: number;
+  thickness?: number;
 }) {
   return (
-    <mesh position={position}>
-      <boxGeometry args={size} />
-      <meshStandardMaterial
-        color={new THREE.Color(0.4, 0.7, 1)}
-        transparent
-        opacity={0.35}
-        roughness={0.05}
-        metalness={0.1}
-      />
-    </mesh>
+    <group position={position} rotation={rotation}>
+      {/* Frame */}
+      <mesh>
+        <boxGeometry args={[width + 0.2, height + 0.2, thickness + 0.05]} />
+        <meshStandardMaterial color="#1a1a1a" roughness={0.9} />
+        <Edges scale={1} threshold={15} color="#000" opacity={0.5} transparent />
+      </mesh>
+      {/* Glass */}
+      <mesh>
+        <boxGeometry args={[width, height, thickness + 0.08]} />
+        <meshStandardMaterial color={new THREE.Color(0.2, 0.5, 0.8)} transparent opacity={0.4} roughness={0.1} metalness={0.5} />
+      </mesh>
+    </group>
   );
 }
 
@@ -249,23 +311,42 @@ function ShelterModel({
         label="West Wall (afternoon ☀️)" temp={westTemp}
       />
 
-      {/* Roof */}
+      {/* Roof with Realistic Overhangs */}
       {roofType === 'pitched' ? (
         <PitchedRoof
-          w={w + wallT} l={l + wallT} baseY={h} ridgeH={h * 0.4}
+          w={w + 1.2} l={l + 1.2} baseY={h} ridgeH={h * 0.4}
+          color={tempToColor(roofTemp, minT, maxT)}
+        />
+      ) : roofType === 'vaulted' ? (
+        <VaultedRoof
+          w={w + 1.2} l={l + 1.2} baseY={h} ridgeH={h * 0.35}
+          color={tempToColor(roofTemp, minT, maxT)}
+        />
+      ) : roofType === 'mono' ? (
+        <MonoRoof
+          w={w + 1.2} l={l + 1.2} baseY={h} ridgeH={h * 0.4}
           color={tempToColor(roofTemp, minT, maxT)}
         />
       ) : (
         <WallFace
-          position={[0, h + wallT / 2, 0]} size={[w + wallT, wallT, l + wallT]}
+          position={[0, h + wallT / 2, 0]} size={[w + 1.2, wallT, l + 1.2]}
           color={tempToColor(roofTemp, minT, maxT)}
           label="Roof (hottest 🔥)" temp={roofTemp}
         />
       )}
 
-      {/* Windows — south wall, 2 × small panes */}
-      <WindowPane position={[-w * 0.2, h * 0.5, l / 2]} size={[w * 0.2, h * 0.35, 0.05]} />
-      <WindowPane position={[ w * 0.2, h * 0.5, l / 2]} size={[w * 0.2, h * 0.35, 0.05]} />
+      {/* Front Door (Wooden Texture Mock) */}
+      <mesh position={[w * 0.15, h * 0.4, l / 2]}>
+        <boxGeometry args={[1.2, h * 0.8, wallT + 0.06]} />
+        <meshStandardMaterial color="#3e2723" roughness={0.9} />
+        <Edges scale={1} threshold={15} color="#000" opacity={0.5} transparent />
+      </mesh>
+
+      {/* Architectural Windows */}
+      <Window position={[-w * 0.25, h * 0.5, l / 2]} rotation={[0, 0, 0]} width={1.5} height={1.2} thickness={wallT} />
+      <Window position={[0, h * 0.6, -l / 2]} rotation={[0, Math.PI, 0]} width={2.0} height={1.0} thickness={wallT} />
+      <Window position={[w / 2, h * 0.5, 0]} rotation={[0, Math.PI / 2, 0]} width={1.5} height={1.2} thickness={wallT} />
+      <Window position={[-w / 2, h * 0.5, 0]} rotation={[0, -Math.PI / 2, 0]} width={1.5} height={1.2} thickness={wallT} />
 
       {/* Interior temp indicator — floating text */}
       <Html position={[0, h * 0.6, 0]} distanceFactor={10} style={{ pointerEvents: 'none' }}>
@@ -298,7 +379,7 @@ export default function ShelterViewer3D({
     roofType = 'flat',
   } = config;
 
-  const [monthIdx, setMonthIdx] = useState(4); // May by default (hottest)
+  const [monthIdx, setMonthIdx] = useState(7); // 14:00 PM by default (hottest)
   const [autoRotate, setAutoRotate] = useState(true);
   const [showWireframe, setShowWireframe] = useState(false);
   const data = monthly[monthIdx];
@@ -320,9 +401,9 @@ export default function ShelterViewer3D({
           3D Thermal View
         </span>
 
-        {/* Month selector */}
+        {/* Time selector */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', marginLeft: 'auto' }}>
-          <span style={{ fontSize: '.75rem', color: '#94A3B8' }}>Month:</span>
+          <span style={{ fontSize: '.75rem', color: '#94A3B8' }}>Time:</span>
           <div style={{ display: 'flex', gap: '3px' }}>
             {monthly.map((m, i) => (
               <button
@@ -371,7 +452,7 @@ export default function ShelterViewer3D({
       <div style={{ height: '420px', background: '#0F172A', borderRadius: '0 0 12px 12px', overflow: 'hidden', position: 'relative' }}>
         <Canvas
           shadows
-          camera={{ position: [width * 1.6, height * 2.2, length * 1.6], fov: 45 }}
+          camera={{ position: [Math.max(width, length) * 1.6, Math.max(height, width, length) * 1.2, Math.max(width, length) * 1.6], fov: 45 }}
           gl={{ antialias: true, alpha: false }}
           style={{ background: '#0B1120' }}
         >
@@ -392,10 +473,10 @@ export default function ShelterViewer3D({
             position={[0, -0.01, 0]}
           />
 
-          {/* Ground plane (shadow catcher) */}
+          {/* Ground plane (textured earth) */}
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} receiveShadow>
-            <planeGeometry args={[40, 40]} />
-            <shadowMaterial opacity={0.25} />
+            <planeGeometry args={[60, 60]} />
+            <meshStandardMaterial color="#1a1c18" roughness={1} metalness={0} />
           </mesh>
 
           {/* Shelter */}
@@ -413,7 +494,7 @@ export default function ShelterViewer3D({
             enablePan={true}
             enableZoom={true}
             minDistance={4}
-            maxDistance={35}
+            maxDistance={Math.max(35, Math.max(width, length) * 4)}
             maxPolarAngle={Math.PI / 2.05}
           />
         </Canvas>

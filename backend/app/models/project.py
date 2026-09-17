@@ -8,7 +8,7 @@ from app.database.connection import Base
 class Project(Base):
     __tablename__ = "projects"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=False)
     description = Column(String(1000), nullable=True)
     status = Column(

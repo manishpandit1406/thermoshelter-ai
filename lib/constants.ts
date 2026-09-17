@@ -1,6 +1,6 @@
 // App-wide constants
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8000';
 
 export const ROUTES = {
   home: '/',
@@ -30,12 +30,23 @@ export const SHELTER_TYPES = [
 ] as const;
 
 export const MATERIALS = [
-  { id: 'concrete',  label: 'Reinforced Concrete', r_value: 0.08,  cost: 'high' },
-  { id: 'brick',     label: 'Clay Brick',           r_value: 0.2,   cost: 'medium' },
-  { id: 'timber',    label: 'Timber Frame',         r_value: 1.41,  cost: 'medium' },
-  { id: 'steel',     label: 'Steel Frame',          r_value: 0.003, cost: 'high' },
-  { id: 'adobe',     label: 'Adobe / Rammed Earth', r_value: 0.44,  cost: 'low' },
-  { id: 'sip',       label: 'SIP Panels',           r_value: 5.6,   cost: 'high' },
+  { id: 'rammed_earth', label: 'Rammed Earth / Adobe', r_value: 0.67,  cost: 'low' },
+  { id: 'concrete',  label: 'Reinforced Concrete', r_value: 0.33,  cost: 'high' },
+  { id: 'aac_blocks', label: 'AAC Blocks',          r_value: 3.3,   cost: 'medium' },
+  { id: 'brick',     label: 'Clay Brick',           r_value: 0.5,   cost: 'medium' },
+  { id: 'insulated_panel', label: 'Insulated Panel (SIP)', r_value: 5.0, cost: 'high' },
+] as const;
+
+export const ROOF_MATERIALS = [
+  { id: 'metal_sheet', label: 'Corrugated Metal Sheet', r_value: 0.2, cost: 'low' },
+  { id: 'concrete', label: 'Concrete Slab', r_value: 0.33, cost: 'medium' },
+  { id: 'insulated_panel', label: 'Insulated Roofing Panel', r_value: 5.0, cost: 'high' },
+] as const;
+
+export const GLAZING_TYPES = [
+  { id: 'single_glass', label: 'Single Glazing', u_value: 5.8, cost: 'low' },
+  { id: 'double_glass', label: 'Double Glazing', u_value: 2.8, cost: 'medium' },
+  { id: 'triple_glass', label: 'Triple Glazing', u_value: 1.2, cost: 'high' },
 ] as const;
 
 export const CLIMATE_ZONES = [

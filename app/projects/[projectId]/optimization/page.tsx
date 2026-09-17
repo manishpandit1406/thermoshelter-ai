@@ -1,9 +1,5 @@
-'use client';
+import { useRouter, useParams } from 'next/navigation';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { use } from 'react';
-
-interface Props { params: Promise<{ projectId: string }> }
 
 const SUGGESTIONS = [
   {
@@ -74,8 +70,9 @@ const IMPACT_COLOR = {
   low:    { badge: 'badge-slate', label: 'Low Impact' },
 };
 
-export default function OptimizationPage({ params }: Props) {
-  const { projectId } = use(params);
+export default function OptimizationPage() {
+  const params = useParams();
+  const projectId = params.projectId as string;
   const router = useRouter();
   const [applied, setApplied] = useState<Set<string>>(new Set());
   const [optimizing, setOptimizing] = useState(false);

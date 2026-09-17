@@ -7,35 +7,8 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { Project } from '@/lib/api';
 import { randomId } from '@/lib/utils';
 
-const STORAGE_KEY = 'thermoshelter_projects';
-
-// ─── Seed data (shown until real backend data loads) ──────────────
-const SEED_PROJECTS: Project[] = [
-  {
-    id: 'demo-1',
-    name: 'Desert Shelter — Rajasthan',
-    description: 'Passive cooling shelter for extreme arid climate',
-    status: 'optimized',
-    created_at: new Date(Date.now() - 7 * 86400000).toISOString(),
-    updated_at: new Date(Date.now() - 1 * 86400000).toISOString(),
-  },
-  {
-    id: 'demo-2',
-    name: 'Himalayan Base Camp',
-    description: 'Insulated emergency shelter for high altitude',
-    status: 'simulated',
-    created_at: new Date(Date.now() - 3 * 86400000).toISOString(),
-    updated_at: new Date(Date.now() - 2 * 86400000).toISOString(),
-  },
-  {
-    id: 'demo-3',
-    name: 'Coastal Kerala Residence',
-    description: 'Humid tropical dwelling with natural ventilation',
-    status: 'in_progress',
-    created_at: new Date(Date.now() - 1 * 86400000).toISOString(),
-    updated_at: new Date(Date.now() - 1 * 86400000).toISOString(),
-  },
-];
+// Backend API URL
+const API_URL = 'http://127.0.0.1:8000/api/v1/projects';
 
 // ─── Context ──────────────────────────────────────────────────────
 
@@ -55,32 +28,27 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
 
-  // Load from localStorage or use seed data
-  useEffect(() => {
+  // Fetch from backend
+  const fetchProjects = async () => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setProjects(JSON.parse(stored));
-      } else {
-        setProjects(SEED_PROJECTS);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(SEED_PROJECTS));
+      const res = await fetch(API_URL);
+      if (res.ok) {
+        const data = await res.json();
+        setProjects(data);
       }
-    } catch {
-      setProjects(SEED_PROJECTS);
+    } catch (err) {
+      console.error("Failed to fetch projects:", err);
     }
-  }, []);
+  };
 
-  // Persist on change
   useEffect(() => {
-    if (projects.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-    }
-  }, [projects]);
+    fetchProjects();
+  }, []);
 
   const setActiveProject = (id: string) => setActiveProjectId(id);
 
-  const addProject = (name: string, description?: string): Project => {
-    const project: Project = {
+  const addProject = async (name: string, description?: string): Promise<Project> => {
+    const tempProject: Project = {
       id: randomId(),
       name,
       description,
@@ -88,18 +56,53 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-    setProjects(prev => [project, ...prev]);
-    return project;
+    
+    // Optimistic update
+    setProjects(prev => [tempProject, ...prev]);
+    
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description }),
+      });
+      if (res.ok) {
+        const realProject = await res.json();
+        setProjects(prev => prev.map(p => p.id === tempProject.id ? realProject : p));
+        return realProject;
+      }
+    } catch (err) {
+      console.error("Failed to add project:", err);
+    }
+    return tempProject;
   };
 
-  const updateProject = (id: string, data: Partial<Project>) => {
+  const updateProject = async (id: string, data: Partial<Project>) => {
+    // Optimistic update
     setProjects(prev =>
       prev.map(p => p.id === id ? { ...p, ...data, updated_at: new Date().toISOString() } : p)
     );
+    try {
+      await fetch(`${API_URL}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+    } catch (err) {
+      console.error("Failed to update project:", err);
+    }
   };
 
-  const deleteProject = (id: string) => {
+  const deleteProject = async (id: string) => {
+    // Optimistic delete
     setProjects(prev => prev.filter(p => p.id !== id));
+    try {
+      await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE',
+      });
+    } catch (err) {
+      console.error("Failed to delete project:", err);
+    }
   };
 
   const getProject = (id: string) => projects.find(p => p.id === id);

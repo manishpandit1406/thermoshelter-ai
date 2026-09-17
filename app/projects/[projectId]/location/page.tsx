@@ -1,12 +1,14 @@
 'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { use } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 
-interface Props { params: Promise<{ projectId: string }> }
+// Dynamically import the map picker to avoid SSR issues with Leaflet
+const MapPicker = dynamic(() => import('@/components/location/MapPicker'), { ssr: false });
 
-export default function LocationPage({ params }: Props) {
-  const { projectId } = use(params);
+export default function LocationPage() {
+  const params = useParams();
+  const projectId = params.projectId as string;
   const router = useRouter();
 
   const [form, setForm] = useState({
@@ -16,6 +18,22 @@ export default function LocationPage({ params }: Props) {
     elevation: '',
   });
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch(`http://127.0.0.1:8000/api/v1/projects/${projectId}/location`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.name) {
+          setForm({
+            name: data.name || '',
+            latitude: data.latitude || '',
+            longitude: data.longitude || '',
+            elevation: data.elevation || '',
+          });
+        }
+      })
+      .catch(err => console.error(err));
+  }, [projectId]);
 
   // Quick presets for Indian cities
   const presets = [
@@ -34,10 +52,26 @@ export default function LocationPage({ params }: Props) {
   async function handleSave() {
     if (!form.name || !form.latitude || !form.longitude) return;
     setSaving(true);
-    // Simulate save delay (replace with real API call)
-    await new Promise(r => setTimeout(r, 600));
-    setSaving(false);
-    router.push(`/projects/${projectId}/climate`);
+    
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/v1/projects/${projectId}/location`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)
+      });
+      
+      if (!res.ok) {
+        alert("Failed to save location! This project may have been deleted. Please go back to home and create a new project.");
+        setSaving(false);
+        return;
+      }
+      
+      router.push(`/projects/${projectId}/climate`);
+    } catch (err) {
+      console.error(err);
+      alert("Network error trying to save location.");
+      setSaving(false);
+    }
   }
 
   const lat = parseFloat(form.latitude);
@@ -127,6 +161,24 @@ export default function LocationPage({ params }: Props) {
               onChange={e => setForm(f => ({ ...f, elevation: e.target.value }))}
               type="number"
               step="1"
+            />
+          </div>
+
+          <div>
+            <label className="form-label">Pick on Map</label>
+            <div style={{ fontSize: '.7375rem', color: 'var(--color-text-muted)', marginBottom: '.5rem' }}>
+              Click anywhere on the map to set coordinates automatically.
+            </div>
+            <MapPicker 
+              lat={lat} 
+              lng={lng} 
+              onChange={(newLat, newLng, name, elevation) => setForm(f => ({ 
+                ...f, 
+                latitude: newLat.toFixed(4), 
+                longitude: newLng.toFixed(4),
+                ...(name ? { name } : {}),
+                ...(elevation ? { elevation } : {})
+              }))}
             />
           </div>
         </div>

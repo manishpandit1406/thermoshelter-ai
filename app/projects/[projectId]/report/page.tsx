@@ -1,7 +1,6 @@
 'use client';
-import { use } from 'react';
-
-interface Props { params: Promise<{ projectId: string }> }
+import { useRouter, useParams } from 'next/navigation';
+import { useState, useRef } from 'react';
 
 const REPORT_DATA = {
   project: 'Desert Shelter — Rajasthan',
@@ -46,8 +45,9 @@ const REPORT_DATA = {
   ],
 };
 
-export default function ReportPage({ params }: Props) {
-  const { projectId } = use(params);
+export default function ReportPage() {
+  const params = useParams();
+  const projectId = params.projectId as string;
 
   function handlePrint() {
     window.print();

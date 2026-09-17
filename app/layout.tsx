@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ProjectProvider } from "@/store/projectStore.tsx";
+import { ProjectProvider } from "@/store/projectStore";
 
 export const metadata: Metadata = {
   title: { default: "ThermoShelter AI", template: "%s | ThermoShelter AI" },

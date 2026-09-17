@@ -1,10 +1,7 @@
 'use client';
+import { useRouter, useParams } from 'next/navigation';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { use } from 'react';
 import { formatNumber } from '@/lib/utils';
-
-interface Props { params: Promise<{ projectId: string }> }
 
 // Mock climate data returned by "analysis"
 const MOCK_CLIMATES: Record<string, {
@@ -36,22 +33,34 @@ const MOCK_CLIMATES: Record<string, {
   },
 };
 
-export default function ClimatePage({ params }: Props) {
-  const { projectId } = use(params);
+export default function ClimatePage() {
+  const params = useParams();
+  const projectId = params.projectId as string;
   const router = useRouter();
   const [analyzed, setAnalyzed] = useState(false);
   const [loading, setLoading] = useState(false);
-  const climate = MOCK_CLIMATES.default;
+  const [climate, setClimate] = useState<any>(null);
 
   async function runAnalysis() {
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1800));
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/v1/projects/${projectId}/climate`);
+      if (res.ok) {
+        const data = await res.json();
+        setClimate(data);
+        setAnalyzed(true);
+      } else if (res.status === 400) {
+        alert("Please set and save your location first!");
+        router.push(`/projects/${projectId}/location`);
+      }
+    } catch (err) {
+      console.error("Failed to fetch climate data:", err);
+    }
     setLoading(false);
-    setAnalyzed(true);
   }
 
   const chartH = 100; // SVG chart height
-  const temps = climate.monthly.map(m => m.t);
+  const temps = climate?.monthly?.map((m: any) => m.t) || [0, 100];
   const maxT = Math.max(...temps);
   const minT = Math.min(...temps);
 
@@ -151,7 +160,7 @@ export default function ClimatePage({ params }: Props) {
                 fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinejoin="round"
               />
               {/* Dots + labels */}
-              {climate.monthly.map((m, i) => {
+              {climate?.monthly?.map((m: any, i: number) => {
                 const y = chartH * (1 - (m.t - minT) / (maxT - minT + 1));
                 return (
                   <g key={m.m}>
@@ -170,7 +179,7 @@ export default function ClimatePage({ params }: Props) {
               🤖 Climate-Specific Recommendations
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
-              {climate.recommendations.map((r, i) => (
+              {climate?.recommendations?.map((r: string, i: number) => (
                 <div key={i} style={{
                   display: 'flex', gap: '.875rem', alignItems: 'flex-start',
                   padding: '.75rem', borderRadius: '8px', background: '#F0F9FF',

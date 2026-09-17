@@ -18,9 +18,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Try to initialize DB — server starts regardless of DB availability
 try:
     from app.database.connection import engine, Base
+    from app.models.project import Project
+    from app.models.climate import ClimateProfile
+    from app.models.design import DesignParameters
+    from app.models.location import Location
+    from app.models.optimization import OptimizationResult
+    from app.models.simulation import SimulationResult
     Base.metadata.create_all(bind=engine)
     logger.info("Database connected and tables created.")
 except Exception as e:
@@ -29,6 +34,16 @@ except Exception as e:
         "Set DATABASE_URL env var with correct credentials to enable persistence.\n"
         "Running in degraded mode (API available, no DB persistence)."
     )
+
+from app.api.v1.projects import router as projects_router
+from app.api.v1.climate import router as climate_router
+from app.api.v1.simulations import router as simulations_router
+from app.api.v1.design import router as design_router
+
+app.include_router(projects_router, prefix="/api/v1")
+app.include_router(climate_router, prefix="/api/v1")
+app.include_router(simulations_router, prefix="/api/v1")
+app.include_router(design_router, prefix="/api/v1")
 
 @app.get("/")
 def read_root():

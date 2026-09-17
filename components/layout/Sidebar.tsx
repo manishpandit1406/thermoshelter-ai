@@ -29,7 +29,7 @@ export function Sidebar() {
               src="/images/image.png" 
               alt="Logo" 
               style={{
-                width: '32px', height: '32px',
+                width: '48px', height: '48px',
                 objectFit: 'contain'
               }}
             />

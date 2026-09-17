@@ -25,14 +25,14 @@ export function Sidebar() {
       <div style={{ padding: '1.25rem 1.25rem 1rem', borderBottom: '1px solid var(--color-border)' }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '.625rem' }}>
-            <div style={{
-              width: '32px', height: '32px',
-              background: 'var(--color-primary)',
-              borderRadius: '8px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '1rem',
-              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -2px 0 rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.2)',
-            }}>🏗️</div>
+            <img 
+              src="/images/image.png" 
+              alt="Logo" 
+              style={{
+                width: '32px', height: '32px',
+                objectFit: 'contain'
+              }}
+            />
             <div>
               <div style={{ fontWeight: 700, fontSize: '.9rem', color: 'var(--color-text-primary)', lineHeight: 1.2 }}>
                 ThermoShelter

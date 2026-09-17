@@ -61,7 +61,7 @@ export default function ReportPage() {
           <h1 className="page-title">📊 Project Report</h1>
           <p className="page-subtitle">Final thermal analysis and optimization report</p>
         </div>
-        <div style={{ display: 'flex', gap: '.75rem' }}>
+        <div className="print:hidden" style={{ display: 'flex', gap: '.75rem' }}>
           <button className="btn btn-secondary" onClick={handlePrint}>
             🖨️ Print / Export PDF
           </button>

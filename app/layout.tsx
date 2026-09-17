@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   description:
     "Location-aware, physics-based AI-assisted shelter thermal design platform.",
   keywords: ["thermal", "shelter", "AI", "simulation", "architecture"],
+  icons: { icon: '/images/image.png' }
 };
 
 export default function RootLayout({

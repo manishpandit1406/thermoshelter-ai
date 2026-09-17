@@ -55,7 +55,7 @@ export default function LandingPage() {
         height: '64px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '.625rem' }}>
-          <span style={{ fontSize: '1.4rem' }}>🏗️</span>
+          <img src="/images/image.png" alt="ThermoShelter AI Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
           <span style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--color-primary)' }}>
             ThermoShelter <span style={{ color: 'var(--color-secondary)' }}>AI</span>
           </span>

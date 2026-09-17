@@ -36,13 +36,14 @@ export default function LoginPage() {
       }} className="animate-slide-in">
         <Link href="/" style={{ textDecoration: 'none', display: 'inline-block', marginBottom: '3rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
-            <div style={{
-              width: '40px', height: '40px',
-              background: 'linear-gradient(135deg,#2563EB,#0EA5E9)',
-              borderRadius: '10px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '1.25rem',
-            }}>🏗️</div>
+            <img 
+              src="/images/image.png" 
+              alt="Logo" 
+              style={{
+                width: '40px', height: '40px',
+                objectFit: 'contain'
+              }}
+            />
             <div>
               <div style={{ fontWeight: 800, fontSize: '1.125rem', color: 'white' }}>ThermoShelter AI</div>
               <div style={{ fontSize: '.75rem', color: '#64748B' }}>Physics-Based Design Platform</div>

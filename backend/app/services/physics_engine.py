@@ -120,13 +120,13 @@ def simulate_shelter(design_params, location_params):
         # Internal gains (people, equipment - assume small constant 200W)
         Q_internal = 200.0
         
-        # Conduction Heat Loss
-        Q_cond = UA_total * (T_in - T_out)
+        # Implicit Euler Update for unconditional numerical stability
+        # C * (T_new - T_in) / dt = Q_solar + Q_internal - UA_total * (T_new - T_out)
+        T_new = (C_total * T_in / dt + Q_solar + Q_internal + UA_total * T_out) / (C_total / dt + UA_total)
         
-        # Finite Difference Update
-        # C * dT/dt = Q_in - Q_out
-        dT = (Q_solar + Q_internal - Q_cond) * dt / C_total
-        T_in += dT
+        # Calculate actual Q_cond based on the new temperature
+        Q_cond = UA_total * (T_new - T_out)
+        T_in = T_new
         
         if hour >= 24:
             results.append({

@@ -38,7 +38,7 @@ def predict_optimal_design(lat: float, lng: float, prompt: str = "") -> tuple[Di
     # Heuristic rules engine based on building physics
     design = {
         "shelterType": "residential",
-        "wallMaterial": "brick_wall",
+        "wallMaterial": "brick",
         "roofType": "flat",
         "roofMaterial": "metal_sheet",
         "glazingType": "double_glass",
@@ -58,13 +58,13 @@ def predict_optimal_design(lat: float, lng: float, prompt: str = "") -> tuple[Di
     p = prompt.lower() if prompt else ""
     
     if "wood" in p or "timber" in p:
-        design["wallMaterial"] = "timber_frame"
+        design["wallMaterial"] = "insulated_panel"
         description_parts.append("You requested wood/timber, so we selected a **Timber Frame** construction, which is lightweight and sustainable.")
     elif "earth" in p or "mud" in p:
         design["wallMaterial"] = "rammed_earth"
         description_parts.append("You requested earth/mud, so **Rammed Earth** walls are selected for exceptional thermal mass.")
     elif "brick" in p:
-        design["wallMaterial"] = "brick_wall"
+        design["wallMaterial"] = "brick"
         description_parts.append("As requested, **Brick Walls** are selected, providing a balance of structural integrity and moderate thermal mass.")
 
     if "pitch" in p or "slope" in p:
@@ -96,7 +96,7 @@ def predict_optimal_design(lat: float, lng: float, prompt: str = "") -> tuple[Di
             design["wallMaterial"] = "rammed_earth" # Good for diurnal shift
         if not p or ("pitch" not in p and "vault" not in p and "flat" not in p):
             design["roofType"] = "flat" # Common in arid regions for roof access/shading
-        design["roofMaterial"] = "concrete_slab"
+        design["roofMaterial"] = "concrete"
         design["glazingType"] = "double_glass"
         design["windowRatio"] = 10  # Minimize solar gain
         design["insulationMm"] = 100
@@ -119,10 +119,10 @@ def predict_optimal_design(lat: float, lng: float, prompt: str = "") -> tuple[Di
     # Temperate Climate
     else:
         if not p or ("earth" not in p and "timber" not in p and "brick" not in p):
-            design["wallMaterial"] = "brick_wall"
+            design["wallMaterial"] = "brick"
         if not p or ("pitch" not in p and "vault" not in p and "flat" not in p):
             design["roofType"] = "pitched"
-        design["roofMaterial"] = "concrete_slab"
+        design["roofMaterial"] = "concrete"
         design["glazingType"] = "double_glass"
         design["windowRatio"] = 20
         design["insulationMm"] = 80
